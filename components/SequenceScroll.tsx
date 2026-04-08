@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
 
-const FRAME_COUNT = 100;
+const FRAME_COUNT = 192;
 
 export function SequenceScroll() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -24,55 +24,30 @@ export function SequenceScroll() {
     const loadedImages: HTMLImageElement[] = [];
     let loadedCount = 0;
 
-    for (let i = 0; i < FRAME_COUNT; i++) {
+    for (let i = 1; i <= FRAME_COUNT; i++) {
       const img = new Image();
       
-      // Generate a procedural SVG frame to simulate a high-end abstract sequence
-      const progress = i / FRAME_COUNT;
-      const cx1 = 960 + Math.sin(progress * Math.PI * 2) * 300;
-      const cy1 = 540 + Math.cos(progress * Math.PI * 2) * 200;
-      const cx2 = 960 + Math.sin(progress * Math.PI * 2 + Math.PI) * 300;
-      const cy2 = 540 + Math.cos(progress * Math.PI * 2 + Math.PI) * 200;
-      const r1 = 400 + Math.sin(progress * Math.PI * 4) * 100;
-      const r2 = 500 + Math.cos(progress * Math.PI * 4) * 100;
-
-      const svg = `<svg width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
-        <rect width="100%" height="100%" fill="#000000" />
-        <defs>
-            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:rgb(50,50,50);stop-opacity:1" />
-                <stop offset="100%" style="stop-color:rgb(200,200,200);stop-opacity:1" />
-            </linearGradient>
-            <linearGradient id="grad2" x1="100%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:rgb(20,20,20);stop-opacity:1" />
-                <stop offset="100%" style="stop-color:rgb(100,100,100);stop-opacity:1" />
-            </linearGradient>
-            <filter id="blur">
-                <feGaussianBlur stdDeviation="80" />
-            </filter>
-        </defs>
-        <g filter="url(#blur)">
-            <circle cx="${cx1}" cy="${cy1}" r="${r1}" fill="url(#grad1)" opacity="0.8" />
-            <circle cx="${cx2}" cy="${cy2}" r="${r2}" fill="url(#grad2)" opacity="0.6" />
-            <ellipse cx="960" cy="540" rx="${800 * progress}" ry="${400 * progress}" fill="rgb(255,255,255)" opacity="${0.05 + progress * 0.1}" />
-        </g>
-      </svg>`;
-
-      const blob = new Blob([svg], { type: 'image/svg+xml' });
-      const url = URL.createObjectURL(blob);
-
-      img.src = url;
+      // Load images from the public/sequence folder
+      // Assuming images are named ezgif-frame-001.jpg, ezgif-frame-002.jpg, etc.
+      const paddedIndex = String(i).padStart(3, '0');
+      img.src = `/sequence/ezgif-frame-${paddedIndex}.jpg`;
+      
       img.onload = () => {
         loadedCount++;
         setImagesLoaded(loadedCount);
       };
+
+      img.onerror = () => {
+        console.warn(`Image /sequence/ezgif-frame-${paddedIndex}.jpg failed to load. Please ensure it exists.`);
+      };
+
       loadedImages.push(img);
     }
 
     setImages(loadedImages);
 
     return () => {
-      loadedImages.forEach(img => URL.revokeObjectURL(img.src));
+      // Cleanup if needed
     };
   }, []);
 
